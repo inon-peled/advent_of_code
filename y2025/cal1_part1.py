@@ -1,9 +1,9 @@
-'''
+"""
 Solved via ChatGPT, ref. https://chatgpt.com/share/69300f4c-d43c-800e-9e74-82c3c300b1e6
-'''
+"""
 
 
-def is_invalid_id(n: int) -> bool:
+def _is_invalid_id(n: int) -> bool:
     s = str(n)
     # Must be an even number of digits
     if len(s) % 2 != 0:
@@ -12,7 +12,7 @@ def is_invalid_id(n: int) -> bool:
     return s[:half] == s[half:]
 
 
-def parse_ranges(text: str):
+def _parse_ranges(text: str):
     text = text.replace("\n", "").strip()
     parts = text.split(",")
     ranges = []
@@ -31,12 +31,12 @@ def main():
     with open("./data_c2.txt", "r") as f:
         content = f.read()
 
-    ranges = parse_ranges(content)
+    ranges = _parse_ranges(content)
 
     total = 0
     for start, end in ranges:
         for n in range(start, end + 1):
-            if is_invalid_id(n):
+            if _is_invalid_id(n):
                 total += n
 
     print(total)

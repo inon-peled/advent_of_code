@@ -1,9 +1,9 @@
-'''
+"""
 Solved via ChatGPT, ref. https://chatgpt.com/share/69300f4c-d43c-800e-9e74-82c3c300b1e6
-'''
+"""
 
 
-def parse_ranges(text: str):
+def _parse_ranges(text: str):
     text = text.replace("\n", "").strip()
     parts = text.split(",")
     ranges = []
@@ -16,7 +16,7 @@ def parse_ranges(text: str):
     return ranges
 
 
-def merge_ranges(ranges):
+def _merge_ranges(ranges):
     if not ranges:
         return []
     ranges.sort()
@@ -31,12 +31,12 @@ def merge_ranges(ranges):
     return [(s, e) for s, e in merged]
 
 
-def sum_doubled_ids_in_ranges(ranges):
+def _sum_doubled_ids_in_ranges(ranges):
     if not ranges:
         return 0
 
     # Ranges must be merged & sorted
-    ranges = merge_ranges(ranges)
+    ranges = _merge_ranges(ranges)
 
     global_min = ranges[0][0]
     global_max = ranges[-1][1]
@@ -104,8 +104,8 @@ def main():
     with open("data_c2.txt", "r") as f:
         content = f.read()
 
-    ranges = parse_ranges(content)
-    result = sum_doubled_ids_in_ranges(ranges)
+    ranges = _parse_ranges(content)
+    result = _sum_doubled_ids_in_ranges(ranges)
     print(result)
 
 

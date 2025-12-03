@@ -24,7 +24,7 @@ def _process_one_bank(bank, total_num_digits):
     return max_jolt_int
 
 
-def total_max_jolts(banks):
+def _total_max_jolts(banks):
     total_max = sum(_process_one_bank(bank=b, total_num_digits=NUM_DIGITS) for b in banks)
     return total_max
 
@@ -37,7 +37,7 @@ def _read_banks(filename):
 
 def main(filename):
     banks = _read_banks(filename)
-    total_max = total_max_jolts(banks=banks)
+    total_max = _total_max_jolts(banks=banks)
     return total_max
 
 

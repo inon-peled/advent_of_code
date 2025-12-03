@@ -35,6 +35,7 @@ def _quick_test():
     assert 98 == _process_one_bank('987654321111111')
     assert 89 == _process_one_bank('811111111111119')
     assert 92 == _process_one_bank('818181911112111')
+    print('\n======= Quick test passed ======\n')
 
 if __name__ == '__main__':
     _quick_test()

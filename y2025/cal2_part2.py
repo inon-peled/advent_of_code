@@ -1,9 +1,9 @@
-'''
+"""
 Solved via ChatGPT, ref. https://chatgpt.com/share/69300f4c-d43c-800e-9e74-82c3c300b1e6
-'''
+"""
 
 
-def parse_ranges(text: str):
+def _parse_ranges(text: str):
     text = text.replace("\n", "").strip()
     parts = text.split(",")
     out = []
@@ -16,7 +16,7 @@ def parse_ranges(text: str):
     return out
 
 
-def merge_ranges(ranges):
+def _merge_ranges(ranges):
     if not ranges:
         return []
     ranges.sort()
@@ -30,7 +30,7 @@ def merge_ranges(ranges):
     return [(s, e) for s, e in merged]
 
 
-def generate_repeated_numbers(global_min, global_max):
+def _generate_repeated_numbers(global_min, global_max):
     """
     Generate all numbers N such that:
         N = concat(A repeated m times), m >= 2
@@ -62,12 +62,12 @@ def generate_repeated_numbers(global_min, global_max):
     return sorted(set(results))
 
 
-def sum_invalid_ids(ranges):
-    ranges = merge_ranges(ranges)
+def _sum_invalid_ids(ranges):
+    ranges = _merge_ranges(ranges)
     global_min = ranges[0][0]
     global_max = ranges[-1][1]
 
-    rep_nums = generate_repeated_numbers(global_min, global_max)
+    rep_nums = _generate_repeated_numbers(global_min, global_max)
 
     total = 0
     r_index = 0
@@ -89,8 +89,8 @@ def main():
     with open("data_c2.txt", "r") as f:
         content = f.read()
 
-    ranges = parse_ranges(content)
-    result = sum_invalid_ids(ranges)
+    ranges = _parse_ranges(content)
+    result = _sum_invalid_ids(ranges)
     print(result)
 
 

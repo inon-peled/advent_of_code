@@ -1,3 +1,8 @@
+'''
+Solved via ChatGPT, ref. https://chatgpt.com/share/69300f4c-d43c-800e-9e74-82c3c300b1e6
+'''
+
+
 def parse_ranges(text: str):
     text = text.replace("\n", "").strip()
     parts = text.split(",")
@@ -36,14 +41,14 @@ def generate_repeated_numbers(global_min, global_max):
 
     max_len = len(str(global_max))
 
-    for total_len in range(2, max_len + 1):          # length of N
-        for m in range(2, total_len + 1):            # number of repeats
+    for total_len in range(2, max_len + 1):  # length of N
+        for m in range(2, total_len + 1):  # number of repeats
             if total_len % m != 0:
                 continue
-            k = total_len // m                       # block length
+            k = total_len // m  # block length
 
-            start = 10**(k - 1)
-            end = 10**k - 1
+            start = 10 ** (k - 1)
+            end = 10 ** k - 1
 
             for A in range(start, end + 1):
                 s = str(A) * m

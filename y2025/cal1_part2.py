@@ -1,6 +1,11 @@
+'''
+Solved via ChatGPT, ref. https://chatgpt.com/share/69300f4c-d43c-800e-9e74-82c3c300b1e6
+'''
+
+
 def count_zero_clicks(lines):
-    pos = 50      # starting position
-    zeros = 0     # total clicks that land on 0
+    pos = 50  # starting position
+    zeros = 0  # total clicks that land on 0
 
     for line in lines:
         line = line.strip()
@@ -37,7 +42,7 @@ def count_zero_clicks(lines):
 
 
 def main():
-    with open("data_c1.txt", "r") as f:
+    with open("./data_c1.txt", "r") as f:
         lines = f.readlines()
 
     print(count_zero_clicks(lines))

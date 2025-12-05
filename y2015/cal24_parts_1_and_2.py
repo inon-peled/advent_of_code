@@ -53,5 +53,5 @@ def _quick_test():
 
 if __name__ == '__main__':
     _quick_test()
-    print('\nPart 1 solution:', main("data_c7.txt", 3))
-    print('\nPart 2 solution:', main("data_c7.txt",  4))
+    print('\nPart 1 solution:', main("data_c24.txt", 3))
+    print('\nPart 2 solution:', main("data_c24.txt", 4))

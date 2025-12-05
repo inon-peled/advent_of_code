@@ -18,12 +18,12 @@ def _rec_candidates(weights, target_size, target_weight):
                 yield sol + [weights[i]]
 
 
-def _solve(weights):
+def _solve(weights, num_packages):
     """
-    The below presumes that for every candidate, the remaining weights can be split to two equal packages.
+    The below presumes that for every candidate, the remaining weights can be split as required.
     """
 
-    target_weight = sum(weights) / 3
+    target_weight = sum(weights) / num_packages
     best_entag = None
 
     for target_size in range(1, len(weights)):
@@ -38,19 +38,20 @@ def _solve(weights):
             print(f'Did not find a candidate for {target_size=}.')
 
 
-def main(filename):
+def main(filename, num_packages):
     weights = _read_input(filename)
-    solution = _solve(weights)
+    solution = _solve(weights, num_packages)
     return solution
 
 
 def _quick_test():
     test_weights = list(range(1, 6)) + list(range(7, 12))
-    solution = _solve(test_weights)
+    solution = _solve(test_weights, 3)
     assert 99 == solution
     print("\n------- Quick test passed -----")
 
 
 if __name__ == '__main__':
     _quick_test()
-    print('\nSolution:', main("data_c7.txt"))
+    print('\nPart 1 solution:', main("data_c7.txt", 3))
+    print('\nPart 2 solution:', main("data_c7.txt",  4))

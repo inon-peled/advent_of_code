@@ -1,3 +1,8 @@
+"""
+Solution idea:
+For k = 1, 2, ..., try recursively to find exactly k weights that sum to the target weight.
+"""
+
 from math import prod
 
 

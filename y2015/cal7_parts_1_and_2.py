@@ -94,6 +94,7 @@ def _solve(parsed, target_wire, memo=MEMO):
 
 
 def main(filename, target_wire):
+    MEMO.clear()
     lines = _read_input(filename)
     parsed = _parse(lines)
     solution = _solve(parsed, target_wire)
@@ -111,20 +112,24 @@ def _quick_test(test_filename):
         'x': 123,
         'y': 456
     }
-    try:
-        for target_wire, expected in test_cases.items():
-            actual = main(test_filename, target_wire)
-            if actual == expected:
-                print(f'\n====== Test case {target_wire} passed')
-            else:
-                print(f'\n====== Test case {target_wire} failed:\nexpected {expected} but got {actual}')
-                assert actual == expected
-        print(f'\n^^^^^^^^^^^^ All test cases passed successfully ^^^^^^^^^^^^')
-    finally:
-        MEMO.clear()
+
+    for target_wire, expected in test_cases.items():
+        actual = main(test_filename, target_wire)
+        if actual == expected:
+            print(f'\n====== Test case {target_wire} passed')
+        else:
+            print(f'\n====== Test case {target_wire} failed:\nexpected {expected} but got {actual}')
+            assert actual == expected
+
+    print(f'\n^^^^^^^^^^^^ All test cases passed successfully ^^^^^^^^^^^^')
+
 
 
 if __name__ == '__main__':
     _quick_test(test_filename='test_data_c7.txt')
-    solution = main(filename='data_c7.txt', target_wire='a')
-    print(f'\nSolution to part 1: {solution}')
+
+    solution1 = main(filename='data_c7_part1.txt', target_wire='a')
+    print(f'\nSolution to part 1: {solution1}')
+
+    solution2 = main(filename='data_c7_part2.txt', target_wire='a')
+    print(f'\nSolution to part 2: {solution2}')

@@ -2,27 +2,27 @@
 """
 Run all Python files in the current directory except this script.
 """
-import os
+from os.path import dirname, basename
 import subprocess
 import sys
-from pathlib import Path
+from glob import glob
 
 
-def _find_python_files(script_dir, script_name):
+def _find_python_files(dirname):
     """Find all Python files in the directory, excluding this script."""
-    py_files = sorted(script_dir.glob("*.py"))
-    return [f for f in py_files if f.name != script_name]
+    py_files = sorted(glob(f'{dirname}/*.py'))
+    return py_files
 
 
-def _run_python_file(py_file, script_dir):
+def _run_python_file(py_file):
     """Run a single Python file and return (filename, status)."""
     print(f"{'-'*60}")
-    print(f"Running: {py_file.name}")
+    print(f"Running: {py_file}")
 
     try:
         result = subprocess.run(
-            [sys.executable, str(py_file)],
-            cwd=script_dir,
+            [sys.executable, basename(py_file)],
+            cwd=dirname(py_file),
             capture_output=True,
             text=True,
             timeout=30
@@ -41,14 +41,14 @@ def _run_python_file(py_file, script_dir):
             status = f"ERROR (exit code {result.returncode})"
 
     except subprocess.TimeoutExpired:
-        print(f"TIMEOUT: {py_file.name} took longer than 30 seconds")
+        print(f"TIMEOUT: {py_file} took longer than 30 seconds")
         status = "TIMEOUT"
     except Exception as e:
-        print(f"ERROR running {py_file.name}: {e}")
+        print(f"ERROR running {py_file}: {e}")
         status = f"ERROR: {e}"
 
     print()
-    return py_file.name, status
+    return py_file, status
 
 
 def _print_summary(results):
@@ -59,13 +59,8 @@ def _print_summary(results):
         print(f"{filename}: {status}")
 
 
-def main():
-    # Get the directory where this script is located
-    script_dir = Path(__file__).parent
-    script_name = Path(__file__).name
-
-    # Find all Python files to run
-    py_files = _find_python_files(script_dir, script_name)
+def main(year):
+    py_files = _find_python_files(f'y{year}')
 
     if not py_files:
         print("No Python files found to run.")
@@ -76,7 +71,7 @@ def main():
     # Run all files and collect results
     results = []
     for py_file in py_files:
-        result = _run_python_file(py_file, script_dir)
+        result = _run_python_file(py_file)
         results.append(result)
 
     # Print summary
@@ -84,4 +79,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(year=2015)

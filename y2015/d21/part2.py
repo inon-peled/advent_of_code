@@ -89,7 +89,7 @@ def solve(weapons, armors, rings, you_htps, boss_htps, boss_damage, boss_armor):
             you_htps=you_htps, you_damage=you_damage, you_armor=you_armor,
             boss_htps=boss_htps, boss_damage=boss_damage, boss_armor=boss_armor
         )
-        if you_win and (best_cost is None or cost < best_cost):
+        if (not you_win) and (best_cost is None or cost > best_cost):
             best_cost = cost
 
     return best_cost

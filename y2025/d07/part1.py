@@ -17,4 +17,5 @@ def solve(filename):
 
 
 assert 21 == solve('test.txt')
+print()
 print(solve('data.txt'))

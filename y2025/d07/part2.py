@@ -16,7 +16,6 @@ def solve(filename):
         for j, r in beams:
             if mat[i][j] == '^':
                 new_beams.extend([[j - 1, r], [j + 1, r]])
-
             else:
                 new_beams.append([j, r])
 

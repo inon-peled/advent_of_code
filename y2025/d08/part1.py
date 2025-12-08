@@ -1,5 +1,3 @@
-from collections import defaultdict
-
 PRINT_DEBUG = True
 
 
@@ -22,22 +20,16 @@ def _sorted_pairs(points):
     return pairs_sorted
 
 
-def _lengths_sorted(circuits):
-    lengths = defaultdict(int)
-
-    for i in range(len(circuits)):
-        c = circuits[i]
-        lengths[c] += 1
-
-    lengths_sorted = sorted(lengths.values(), reverse=True)
+def _lengths_sorted(union_find):
+    lengths = [len(union_find[k]) for k in union_find]
+    lengths_sorted = sorted(lengths, reverse=True)
     if PRINT_DEBUG:
-        print(f'There are {len(lengths_sorted)} circuits:\n\t{list(lengths.items())}\n\t{lengths_sorted=}\n')
-
+        print(f'\t{union_find=}\n\t{lengths=}\n\t{lengths_sorted=}\n')
     return lengths_sorted
 
 
-def _prod_longest_lengths(circuits, num_longest):
-    sorted_lengths = _lengths_sorted(circuits)
+def _prod_longest_lengths(union_find, num_longest):
+    sorted_lengths = _lengths_sorted(union_find)
     longest = sorted_lengths[:num_longest]
     prod = 1
     for length in longest:
@@ -45,31 +37,44 @@ def _prod_longest_lengths(circuits, num_longest):
     return prod
 
 
+def _find_rep(union_find, u):
+    for v in union_find:
+        if u in union_find[v]:
+            return v
+    return None
+
+def _do_union(u, v, union_find):
+    u_rep = _find_rep(union_find, u)
+    v_rep = _find_rep(union_find, v)
+    if u_rep != v_rep:
+        union_find[u_rep].extend(union_find[v_rep])
+        union_find.pop(v_rep)
+
+
 def main(fname, max_connections, num_longest):
     points = read_and_parse(fname)
-    circuits = list(range(len(points)))
+    union_find = {i: [i] for i in range(len(points))}
     pairs = _sorted_pairs(points)
 
-    connections_made = 0
-    t = 0
-    while connections_made < max_connections:
+    for t in range(max_connections):
         pr = pairs[t]
-        if circuits[pr[1]] != circuits[pr[0]]:
-            circuits[pr[1]] = circuits[pr[0]]
-            connections_made += 1
-
-        t += 1
+        _do_union(pr[0], pr[1], union_find)
         if PRINT_DEBUG:
-            print(f'Turn {t}:\nPair {pr} = {points[pr[0]]} and {points[pr[1]]}')
-            print('Connections so far:', connections_made)
-            _lengths_sorted(circuits)
+            print(f'Turn {t + 1}:\nPair {pr} = {points[pr[0]]} and {points[pr[1]]}')
+            _lengths_sorted(union_find)
 
     if PRINT_DEBUG:
         print('Final state:')
 
-    solution = _prod_longest_lengths(circuits, num_longest)
+    expected = list(range(len(points)))
+    actual = sorted(sum(union_find.values(), []))
+    assert expected == actual, f'\nExpected\n\t{expected}\n\tbut got\n\t{actual}'
+
+    solution = _prod_longest_lengths(union_find, num_longest)
     return solution
 
 
 if __name__ == '__main__':
     assert 40 == main('./test_data.txt', 10, 3)
+    sol = main('./data.txt', 1000, 3)
+    print('\nSolution is', sol)

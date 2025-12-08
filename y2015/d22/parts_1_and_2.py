@@ -12,7 +12,7 @@ SPELLS = {
 }
 
 
-def solve(boss_hp_init, boss_damage):
+def solve(boss_hp_init, boss_damage, htps_lost_at_start_of_player_turn):
     # Priority queue holds states ordered by mana_spent
     pq = []
     heappush(
@@ -41,6 +41,10 @@ def solve(boss_hp_init, boss_damage):
             recharge_time,
         ) = heappop(pq)
 
+        player_hp -= htps_lost_at_start_of_player_turn
+        if player_hp <= 0:
+            continue
+
         # Check if we've seen a cheaper version of this state
         state_key = (
             player_hp,
@@ -57,6 +61,7 @@ def solve(boss_hp_init, boss_damage):
         # -------------------------
         # Player turn: apply effects
         # -------------------------
+
         if poison_time > 0:
             boss_hp -= 3
         if recharge_time > 0:
@@ -150,4 +155,5 @@ def solve(boss_hp_init, boss_damage):
             )
 
 
-print(solve(boss_hp_init=51, boss_damage=9))
+print('Solution to part 1:', solve(boss_hp_init=51, boss_damage=9, htps_lost_at_start_of_player_turn=0))
+print('Solution to part 2:', solve(boss_hp_init=51, boss_damage=9, htps_lost_at_start_of_player_turn=1))

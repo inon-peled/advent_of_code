@@ -1,42 +1,27 @@
 from tqdm import tqdm
 
 
-def _print_board(board):
-    for row in board:
-        print(''.join(row))
+def _line(c1, c2):
+    l = []
+    if c1[0] == c2[0]:
+        for k in range(min(c1[1], c2[1]), max(c1[1], c2[1]) + 1):
+            l.append([c1[0], k])
+    else:
+        for k in range(min(c1[0], c2[0]), max(c1[0], c2[0]) + 1):
+            l.append([k, c1[1]])
+    return l
 
 
-def _build_board(corners, print_progress):
-    max_x = max(c[0] for c in corners)
-    max_y = max(c[1] for c in corners)
-    pad_row = ['.'] * (max_y + 2)
-    board = [pad_row[:] for i in range(max_x + 2)]
+def _perimeter(corners):
+    perimeter = []
 
-    for i in tqdm(range(len(corners))):
+    for i in (range(len(corners))):
         c1 = corners[i]
         c2 = corners[(i + 1) % len(corners)]
-        if c1[0] == c2[0]:
-            for k in range(min(c1[1], c2[1]), max(c1[1], c2[1]) + 1):
-                board[c1[0]][k] = '#'
-        else:
-            for k in range(min(c1[0], c2[0]), max(c1[0], c2[0]) + 1):
-                board[k][c1[1]] = '#'
-        if print_progress:
-            print(f'\nIteration {i + 1}:')
-            _print_board(board)
+        perimeter.extend(_line(c1, c2))
 
-    for i in tqdm(range(len(board))):
-        start = next((i for i, x in enumerate(board[i]) if x == '#'), None)
-        end = next((i for i, x in reversed(list(enumerate(board[i]))) if x == '#'), None)
-        if start is not None and end is not None:
-            for j in range(start, end + 1):
-                board[i][j] = '#'
-
-    if print_progress:
-        print(f'\nAfter filling:')
-        _print_board(board)
-
-    return board
+    perimeter_sorted = [list(s) for s in sorted(set(tuple(p) for p in perimeter))]
+    return perimeter_sorted
 
 
 def _read_and_parse(fname):
@@ -46,28 +31,44 @@ def _read_and_parse(fname):
     return corners_rev_xy
 
 
-def _find_largest_rectangle(corners, board):
+def _is_internal(c, perimeter):
+    left_wall = any(p[0] == c[0] and p[1] <= c[1] for p in perimeter)
+    right_wall = any(p[0] == c[0] and p[1] >= c[1] for p in perimeter)
+    up_wall = any(p[1] == c[1] and p[0] <= c[0] for p in perimeter)
+    down_wall = any(p[1] == c[1] and p[0] >= c[0] for p in perimeter)
+    internal = left_wall and right_wall and up_wall and down_wall
+    return internal
+
+
+def _find_largest_rectangle(corners, perimeter):
     largest_area = 0
-    for c1 in corners:
-        for c2 in corners:
+    for c1 in tqdm(corners, desc='c1'):
+        for c2 in tqdm(corners, desc='c2'):
             min_x = min(c1[0], c2[0])
             min_y = min(c1[1], c2[1])
             max_x = max(c1[0], c2[0])
             max_y = max(c1[1], c2[1])
-            if all(board[r][c] == '#' for c in range(min_y, max_y + 1) for r in range(min_x, max_x + 1)):
+
+            cc = [
+                [min_x, min_y],
+                [max_x, min_y],
+                [max_x, max_y],
+                [min_x, max_y]
+            ]
+            internals = [_is_internal(cc[i], perimeter) for i in range(4)]
+            if all(internals):
                 area = (max_x - min_x + 1) * (max_y - min_y + 1)
                 largest_area = max(largest_area, area)
     return largest_area
 
 
-def main(fname, print_progress):
+def main(fname):
     corners = _read_and_parse(fname)
-    board = _build_board(corners, print_progress)
-    print('\nBoard created, now calculating largest rectangle...')
-    largest_area = _find_largest_rectangle(corners, board)
+    perimeter = _perimeter(corners)
+    largest_area = _find_largest_rectangle(corners, perimeter)
     return largest_area
 
 
 if __name__ == '__main__':
-    # assert 24 == main('./test_data.txt', True)
-    print(main('./data.txt', False))
+    assert 24 == main('./test_data.txt')
+    print(main('./data.txt'))

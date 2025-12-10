@@ -1,4 +1,8 @@
-from tqdm import tqdm
+"""
+Solution via Linear Programming.
+"""
+
+from scipy.optimize import linprog
 
 from ast import literal_eval
 
@@ -20,63 +24,46 @@ def read_and_parse(fname):
     return machines
 
 
-def _increment(lights_state, button):
-    result = list(lights_state)
-    for b in button:
-        result[b] += 1
-    return result
+def _min_presses(buttons, target_voltages):
+    """
+    Solve an ILP, where decision variables are x = num presses for each button.
+    c = 1 for each button, because we want to minimize total presses.
+    b_eq = target_voltages
+    A_eq[i][j] = 1 if button j affects light i, otherwise 0
+    lb = 0
+    ub = max voltage of any light, because no button can be pressed beyond this number
+    integrality = True for all x
+    """
+    num_lights = len(target_voltages)
+    num_buttons = len(buttons)
+    c = [1] * len(buttons)
+    b_eq = target_voltages[:]
+    A_eq = [
+        [int(i in buttons[j]) for j in range(num_buttons)]
+        for i in range(num_lights)
+    ]
+    bounds = (0, max(target_voltages))
 
+    res = linprog(c=c, A_eq=A_eq, b_eq=b_eq, bounds=bounds, integrality=1)
+    assert res.success is True
 
-def _min_presses(voltage_state, buttons, target_voltages, memo):
-    memo_key = tuple(tuple(e) for e in (voltage_state, buttons, target_voltages))
-    if memo_key in memo:
-        return memo[memo_key]
-
-    if tuple(voltage_state) == tuple(target_voltages):
-        memo[memo_key] = 0
-    elif any(v > t for v, t in zip(voltage_state, target_voltages)):
-        memo[memo_key] = None
-    else:
-        best_presses = None
-
-        for i, button in enumerate(buttons):
-            curr_voltages = _increment(voltage_state, button)
-            best_presses_remaining = _min_presses(
-                voltage_state=curr_voltages,
-                buttons=buttons,
-                target_voltages=target_voltages,
-                memo=memo
-            )
-            if best_presses_remaining is not None:
-                best_presses_including_button = 1 + best_presses_remaining
-                if best_presses is None or best_presses_including_button < best_presses:
-                    best_presses = best_presses_including_button
-
-        memo[memo_key] = best_presses
-
-    return memo[memo_key]
-
-
-def _initial_voltages(m):
-    init = [0] * len(m['target_voltages'])
-    return init
+    optimal_presses = res.x
+    total_presses = int(sum(optimal_presses))
+    return total_presses
 
 
 def main(fname):
     machines = read_and_parse(fname)
     total_best_presses = 0
-    memo = dict()
-    for m in tqdm(machines, desc='Machines'):
-        best_presses = _min_presses(
-            voltage_state=_initial_voltages(m),
+    for i, m in enumerate(machines):
+        m_presses = _min_presses(
             buttons=m['buttons'],
-            target_voltages=m['target_voltages'],
-            memo=memo
+            target_voltages=m['target_voltages']
         )
-        total_best_presses += best_presses
+        total_best_presses += m_presses
     return total_best_presses
 
 
 if __name__ == '__main__':
     assert 33 == main('./test_data.txt')
-    print(main('./data.txt'))
+    print('\nSolution to part 2:', main('./data.txt'))

@@ -26,4 +26,4 @@ assert 404 == solve(['not-a-real-room-404[oarel]'])
 assert 0 == solve(['totally-real-room-200[decoy]'])
 
 data = open('./input.txt').readlines()
-print('Soltuion to part 1:', solve(data))
+print('Solution to part 1:', solve(data))

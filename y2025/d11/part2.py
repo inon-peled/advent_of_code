@@ -64,6 +64,7 @@ def _topological_sort(graph):
     topological_order.append('out')
     return topological_order
 
+
 def _fathers(node, graph):
     fs = []
     for v in graph:
@@ -71,6 +72,7 @@ def _fathers(node, graph):
             fs.append(v)
     fs = set(fs)
     return fs
+
 
 def _count_paths(graph, src, dst, counts, order):
     start_idx = order.index(src)
@@ -110,6 +112,5 @@ def main(fname):
 if __name__ == '__main__':
     assert not _detect_cycles(_parse_to_graph('./data.txt'))
     assert not _detect_cycles(_parse_to_graph('./test_data_part2.txt'))
-    # print(_topological_sort(_parse_to_graph('./data.txt')))
     assert 2 == main('./test_data_part2.txt')
     print('Solution to part 2 is', main('./data.txt'))

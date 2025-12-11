@@ -66,7 +66,7 @@ def plot(data_fname):
     plt.axis("off")
     plt.tight_layout()
 
-    plt.savefig(data_fname.replace('..', '.').replace('.txt', '.png'), dpi=150)
+    plt.savefig(data_fname.replace('..', '.').replace('.txt', '.svg'))
 
 if __name__ == '__main__':
     for f in glob('../*.txt'):

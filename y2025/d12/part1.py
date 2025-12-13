@@ -93,6 +93,7 @@ def _check_if_can_put(t, i, j, grid):
 
     return True
 
+
 def _put_in_grid(t, i, j, grid):
     before = [[None] * 3 for _ in range(3)]
     for r in range(3):
@@ -109,9 +110,13 @@ def _revert_grid(i, j, grid, before):
             grid[i + r][j + c] = before[r][c]
 
 
-def solve(grid, w, h, amounts, transformed_presents):
+def solve(grid, w, h, amounts, transformed_presents, memo, grid_status, remaining_i_j):
+    if grid_status in memo:
+        return memo[grid_status]
+
     if all(a == 0 for a in amounts):
         _print_grid(grid)
+        memo[grid_status] = True
         return True
 
     p_idx = None
@@ -124,14 +129,27 @@ def solve(grid, w, h, amounts, transformed_presents):
 
     trans = transformed_presents[p_idx]
     for t_idx, t in enumerate(trans):
-        for i in range(h - 2):
-            for j in range(w - 2):
-                if _check_if_can_put(t, i, j, grid):
-                    before = _put_in_grid(t, i, j, grid)
-                    if solve(grid=grid, w=w, h=h, amounts=new_amounts, transformed_presents=transformed_presents):
-                        return True
-                    _revert_grid(i, j, grid, before)
+        for i, j in remaining_i_j:
+            if _check_if_can_put(t, i, j, grid):
+                before = _put_in_grid(t, i, j, grid)
+                new_grid_status = grid_status | frozenset({(i, j, p_idx, t_idx)})
+                new_remaining_i_j = [(r, c) for r, c in remaining_i_j if (r, c) != (i, j)]
+                sol = solve(
+                    grid=grid,
+                    w=w,
+                    h=h,
+                    amounts=new_amounts,
+                    transformed_presents=transformed_presents,
+                    memo=memo,
+                    grid_status=new_grid_status,
+                    remaining_i_j=new_remaining_i_j
+                )
+                _revert_grid(i, j, grid, before)
+                if sol:
+                    memo[grid_status] = True
+                    return True
 
+    memo[grid_status] = False
     return False
 
 
@@ -147,12 +165,15 @@ def main(fname):
             h=tree['h'],
             amounts=list(tree['amounts']),
             transformed_presents=transformed_presents,
-            grid=grid
+            grid=grid,
+            memo=dict(),
+            grid_status=frozenset(),
+            remaining_i_j=[(i, j) for i in range(tree['h'] - 2) for j in range(tree['w'] - 2)]
         )
 
     return num_satisfiable
 
 
 if __name__ == '__main__':
-    main('./test_data.txt')
-    # main('./data.txt')
+    assert 2 == main('./test_data.txt')
+    print(main('./data.txt'))

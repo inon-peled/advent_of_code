@@ -122,28 +122,31 @@ def _is_satisfiable(tree, transformed_presents):
     total_instances = sum(tree['amounts'])
     num_transformations_per_instance = len(transformed_presents[0])
     num_variables = tree['w'] * tree['h'] * total_instances * num_transformations_per_instance
+    print('total instances:', total_instances)
+    print('number of transformations:', num_transformations_per_instance)
+    print('number of variables:', num_variables)
 
-    c = [-1] * num_variables
-    A = []
-    l = []
-    u = []
-
-    # Constraint: exactly one instance
-    for amount in tree['amounts']:
-        k = 0
-        # For every present instance
-        for _ in range(amount):
-            # For every position in the tree where the top left corner of the instance can be placed:
-            for i in range(tree['h'] - 2):
-                for j in range(tree['w'] - 2):
-                    l.append(1)
-                    u.append(1)
-                    A.append(
-                        [0] * k +
-                        [1] * num_transformations_per_instance +
-                        [0] * (num_variables - k - num_transformations_per_instance)
-                    )
-                    k += num_transformations_per_instance
+    # c = [-1] * num_variables
+    # A = []
+    # l = []
+    # u = []
+    #
+    # # Constraint: exactly one instance
+    # for amount in tree['amounts']:
+    #     k = 0
+    #     # For every present instance
+    #     for _ in range(amount):
+    #         # For every position in the tree where the top left corner of the instance can be placed:
+    #         for i in range(tree['h'] - 2):
+    #             for j in range(tree['w'] - 2):
+    #                 l.append(1)
+    #                 u.append(1)
+    #                 A.append(
+    #                     [0] * k +
+    #                     [1] * num_transformations_per_instance +
+    #                     [0] * (num_variables - k - num_transformations_per_instance)
+    #                 )
+    #                 k += num_transformations_per_instance
 
     return False
     # # Constraint: no overlapping instances

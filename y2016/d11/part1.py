@@ -128,4 +128,4 @@ def dijkstra(data):
 if __name__ == '__main__':
     assert 11 == dijkstra(TEST_DATA)
     print('Assert succeeded\n')
-    print('\nAnswer to part 1:', dijkstra(DATA))
+    print('\nPart 1 answer is:', dijkstra(DATA))

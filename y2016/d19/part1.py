@@ -1,21 +1,22 @@
-def _find_next(state, i, n):
-    j = (i + 1) % n
-    while j not in state:
-        j = (j + 1) % n
-    return j
+'''
+Solution idea: Simulate the game using a double-ended queue (deque).
+In this manner, every update of the game takes place at the end of the deque in just O(1) time.
+'''
+
+from collections import deque
 
 
 def solve(n):
-    state = {e: 1 for e in range(n)}
-    i = 0
+    d = deque([i, 1] for i in range(1, n + 1))
 
-    while True:
-        if len(state) == 1:
-            return 1 + list(state)[0]
-        next_i = _find_next(state, i, n)
-        state[i] += state[next_i]
-        state.pop(next_i)
-        i = _find_next(state, next_i, n)
+    while len(d) > 1:
+        elf = d.popleft()
+        next_elf = d.popleft()
+        elf[1] += next_elf[1]
+        d.append(elf)
+
+    winner = d.popleft()
+    return winner[0]
 
 
 if __name__ == '__main__':

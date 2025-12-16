@@ -1,7 +1,7 @@
 '''
-Solved via Claude. Originally, I used the same code as for part 1, but it was too slow with 7 items.
-Claude improved this by a better state representation, in which generator-chip pairs are interchangeable,
-as long as they occupy different floors.
+Originally, I used the same code as for part 1, but it was too slow with 7 items.
+Claude improved this as follows, using a better state representation, in which generator-chip pairs are interchangeable
+if they occupy different floors.
 '''
 
 from heapq import heappop, heappush
@@ -142,7 +142,7 @@ def _heuristic(elevator, pairs):
 
 
 def solve(data):
-    """A* search with pair-based state representation"""
+    """Dijkstra search with pair-based state representation"""
     start_pairs = _data_to_pairs(data)
     start_elevator = 1
     start_state = (start_elevator, start_pairs)
@@ -151,16 +151,16 @@ def solve(data):
     goal_pairs = tuple([(4, 4)] * num_pairs)
     goal_state = (4, goal_pairs)
 
-    pq = [(0 + _heuristic(start_elevator, start_pairs), 0, start_state)]
+    pq = [(0, start_state)]
     dist = {start_state: 0}
 
     i = 0
     while pq:
         i += 1
         if i % 10000 == 0:
-            print(f'{i} iterations, queue size: {len(pq)}, visited: {len(dist)}')
+            print(f'After {i} iterations, queue size: {len(pq)}, visited: {len(dist)}')
 
-        f, d, state = heappop(pq)
+        d, state = heappop(pq)
         elevator, pairs = state
 
         if state == goal_state:
@@ -173,9 +173,7 @@ def solve(data):
             new_d = d + 1
             if new_d < dist.get(new_state, float('inf')):
                 dist[new_state] = new_d
-                new_elev, new_pairs = new_state
-                priority = new_d + _heuristic(new_elev, new_pairs)
-                heappush(pq, (priority, new_d, new_state))
+                heappush(pq, (new_d, new_state))
 
     return None
 

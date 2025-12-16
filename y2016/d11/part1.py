@@ -8,15 +8,8 @@ TEST_DATA = {
     4: set()
 }
 
-DATA_1 = {
+DATA = {
     1: {'pg', 'pm'},
-    2: {'ag', 'bg', 'cg', 'dg'},
-    3: {'am', 'bm', 'cm', 'dm'},
-    4: set()
-}
-
-DATA_2 = {
-    1: {'pg', 'pm', 'xg', 'xm', 'yg', 'ym'},
     2: {'ag', 'bg', 'cg', 'dg'},
     3: {'am', 'bm', 'cm', 'dm'},
     4: set()
@@ -135,5 +128,4 @@ def dijkstra(data):
 if __name__ == '__main__':
     assert 11 == dijkstra(TEST_DATA)
     print('Assert succeeded\n')
-    # print('\nPart 1 answer is:', dijkstra(DATA_1))
-    print('\nPart 2 answer is:', dijkstra(DATA_2))
+    print('\nPart 1 answer is:', dijkstra(DATA))

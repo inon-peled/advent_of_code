@@ -1,5 +1,9 @@
 '''
-Solution idea: for every pair of particles, solve a quadratic (or linear) equation of their trajectories
+Solution idea:
+The right way to solve this is probably simply to simulate enough iterations.
+However, I went a different path:
+
+For every pair of particles, solve a quadratic (or linear) equation of their trajectories
 in each of the 3 dimensions. The particles then collide if-and-only-if all 3 equations yield the same integer solution.
 The equation is:
 (a / 2) * (t ** 2) + v * t + p = 0,

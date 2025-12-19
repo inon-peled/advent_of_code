@@ -151,3 +151,4 @@ if __name__ == '__main__':
     assert 12 == main('./test.txt', INIT_BOARD, 2)
     assert 12 == main('./test.txt', '#..#/..../..../#..#', 1)
     print(main('./input.txt', INIT_BOARD, 5))
+    print(main('./input.txt', INIT_BOARD, 18))

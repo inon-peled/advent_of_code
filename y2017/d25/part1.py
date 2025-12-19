@@ -40,6 +40,7 @@ DATA = {
     }
 }
 
+
 def simulate(data):
     state = 'a'
     tape = {}

@@ -22,28 +22,36 @@ def solve(chips, last_pin, memo):
         if a == last_pin or b == last_pin:
             options.append((a, b))
 
-    best = 0
+    s = []
+    l = []
     for opt in options:
         a, b = opt
-        sol = solve(
+        strength, length = solve(
             chips=chips - {opt},
             last_pin=(a if b == last_pin else b),
             memo=memo
         )
-        curr = a + b + sol
-        if curr > best:
-            best = curr
+        curr_strength = a + b + strength
+        curr_length = 1 + length
+        s.append(curr_strength)
+        l.append(curr_length)
 
-    memo[memo_key] = best
-    return best
+    best_length = max(l) if l else 0
+    best_strength = 0
+    for i in range(len(l)):
+        if l[i] == best_length:
+            best_strength = max(best_strength, s[i])
+
+    memo[memo_key] = best_strength, best_length
+    return memo[memo_key]
 
 
 def main(fname):
     chips = _parse(fname)
-    answer = solve(chips=chips, last_pin=0, memo={})
+    answer, _ = solve(chips=chips, last_pin=0, memo={})
     return answer
 
 
 if __name__ == '__main__':
-    assert 31 == main('./test.txt')
+    assert 19 == main('./test.txt')
     print(main('./input.txt'))

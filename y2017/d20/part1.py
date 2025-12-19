@@ -49,5 +49,5 @@ def main(fname):
 
 
 if __name__ == '__main__':
-    assert 0 == main('./test.txt')
+    assert 0 == main('./test1.txt')
     print(main('./input.txt'))

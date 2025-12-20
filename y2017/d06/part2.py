@@ -3,15 +3,16 @@ TEST = [0, 2, 7, 0]
 
 
 def solve(data):
-    visited = set()
+    visited = dict()
     state = data[:]
     n = len(state)
     i = 0
     while True:
         if tuple(state) in visited:
-            return i
+            cycle_length = i - visited[tuple(state)]
+            return cycle_length
 
-        visited.add(tuple(state))
+        visited[tuple(state)] = i
         i += 1
 
         mx = max(state)
@@ -26,5 +27,5 @@ def solve(data):
 
 
 if __name__ == '__main__':
-    assert 5 == solve(TEST)
+    assert 4 == solve(TEST)
     print(solve(DATA))

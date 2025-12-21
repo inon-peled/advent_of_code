@@ -5,8 +5,8 @@ Each bot covers a region in space defined by an L1 (Manhattan) ball, not a cube.
 The goal is to find a single point that lies inside the maximum number of such
 regions, and among those points minimize Manhattan distance to the origin.
 
-Instead of intersecting bot regions (which is incorrect, since pairwise
-intersection does not imply a common intersection), we search space itself.
+Intersecting bot regions is incorrect, because pairwise intersection does not imply a common intersection.
+So instead, we SEARCH THE 3D SPACE ITSELF.
 
 Algorithm:
 
@@ -16,18 +16,18 @@ Algorithm:
    (c) box size (smaller is better),
    (d) a numeric tiebreaker.
 
-2. Initialize the queue with one large box that contains all points that could be in range of any bot.
+2. Initialize the queue with one large box that contains all points in the range of any bot.
 
 3. Repeatedly:
 
    * Remove the highest-priority box from the queue.
    * If the box represents a single point, return its distance to the origin.
-   * Otherwise, split the box by halving each coordinate range
-     (up to 8 sub-boxes) and insert each sub-box that is reachable
-     by at least one bot back into the queue.
+   * Otherwise:
+   ** Split the box by halving each coordinate range (up to 8 sub-boxes).
+   ** Insert into the queue every sub-box that at least one bot can reach.
 
-This process always refines the most promising region first and
-guarantees the first single point reached is optimal.
+This process always refines the most promising region first, and so it
+guarantees that the first single point reached is optimal.
 
 """
 import heapq

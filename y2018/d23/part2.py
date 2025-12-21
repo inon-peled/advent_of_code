@@ -1,148 +1,157 @@
 """
-Solution idea:
+Solution from ChatGPT (https://chatgpt.com/share/69480904-2ffc-800e-82b9-8dae3ae0d879):
 
-Each bot in the given data is a 3d cube with a given center and radius.
-We need to find a maximal set of cubes, where each pair of cubes overlap, namely, their intersection is
-a non-empty rectangular cuboid.
+Each bot covers a region in space defined by an L1 (Manhattan) ball, not a cube.
+The goal is to find a single point that lies inside the maximum number of such
+regions, and among those points minimize Manhattan distance to the origin.
 
-For this, we will o as follows:
+Instead of intersecting bot regions (which is incorrect, since pairwise
+intersection does not imply a common intersection), we search space itself.
 
-1. For each cube, initialize a dict S with the following elements:
-1.1. D_S = a rectangular cuboid that equals this cube.
-1.2. P_S = 1
+Algorithm:
 
-2. For each cube C:
-2.1. For each dict S:
-2.2 Let T(C, D_S) be the cuboid intersection of C and D_S.
-2.3. If T(C, D_S) is non-empty, then increment P_S and assign T(C, D_S) to D_S.
+1. Maintain a priority queue of axis-aligned boxes, ordered by:
+   (a) number of bots that can reach the box (more is better),
+   (b) minimum possible distance from the box to the origin (smaller is better),
+   (c) box size (smaller is better),
+   (d) a numeric tiebreaker.
 
-3. Calculate M = max{P_S | all dicts S}.
-4. Let K = {S | S is a dict with P_S = M}.
-5. Return min {x_S + y_S + z_S | (x_S, y_S, z_S) is a corner of D_S, for S in K}.
+2. Initialize the queue with one large box that contains all points that could be in range of any bot.
 
-Worst Case Complexity:
-Let N be the number of given cubes.
+3. Repeatedly:
 
-There are O(N) dicts, each containing O(N) cubes, so the dicts take altogether O(N^2) space.
-There are a few other variables, each taking O(N) space.
-So the total space complexity is O(N^2).
+   * Remove the highest-priority box from the queue.
+   * If the box represents a single point, return its distance to the origin.
+   * Otherwise, split the box by halving each coordinate range
+     (up to 8 sub-boxes) and insert each sub-box that is reachable
+     by at least one bot back into the queue.
 
-For time complexity:
-Step 1 takes O(N) time for initializations.
-Step 2 consists of O(N^2) iterations, eac incurring O(1) calculations (assuming set operations are O(1)).
-Each of the remaining three steps incurs O(N) operations.
-So the total time complexity is O(N^2).
+This process always refines the most promising region first and
+guarantees the first single point reached is optimal.
+
 """
+import heapq
 
 
 def _parse(fname):
     bots = []
-
     with open(fname) as f:
         for line in f:
             line = line.strip()
             pos, r = line.split(', ')
-
-            pos = pos.split('<')[1]
-            pos = pos.split('>')[0]
+            pos = pos.split('<')[1].split('>')[0]
             pos = tuple(int(e) for e in pos.split(','))
-
-            r = r.split('=')
-            r = int(r[1])
-
+            r = int(r.split('=')[1])
             bots.append((pos, r))
-
     return bots
 
 
-def _manhattan_distance(pos1, pos2):
-    assert len(pos1) == len(pos2)
-    return sum(abs(pos1[i] - pos2[i]) for i in range(len(pos1)))
-
-
 def _initialize(bots):
-    dicts = []
-    for i, b in enumerate(bots):
-        pos, r = b
-        mn = (pos[0] - r, pos[1] - r, pos[2] - r)
-        mx = (pos[0] + r, pos[1] + r, pos[2] + r)
-        ranges = {'mn': mn, 'mx': mx}
-        s_b = {
-            'p': 1,
-            'd': ranges
-        }
-        dicts.append(s_b)
-    return dicts
+    xs = [p[0] for p, _ in bots]
+    ys = [p[1] for p, _ in bots]
+    zs = [p[2] for p, _ in bots]
+    rs = [r for _, r in bots]
+
+    minx = min(x - r for x, r in zip(xs, rs))
+    maxx = max(x + r for x, r in zip(xs, rs))
+    miny = min(y - r for y, r in zip(ys, rs))
+    maxy = max(y + r for y, r in zip(ys, rs))
+    minz = min(z - r for z, r in zip(zs, rs))
+    maxz = max(z + r for z, r in zip(zs, rs))
+
+    span = max(maxx - minx, maxy - miny, maxz - minz) + 1
+    size = 1
+    while size < span:
+        size <<= 1
+
+    root = {'mn': [minx, miny, minz], 'mx': [minx + size - 1, miny + size - 1, minz + size - 1]}
+    return root
 
 
-def _is_inside(point, rc):
+def _dist_point_to_rc(point, rc):
+    # minimal L1 distance from point to any point in axis-aligned box rc
+    d = 0
     for dim in range(3):
-        if not (rc['mn'][dim] <= point[dim] <= rc['mx'][dim]):
-            return False
-    return True
+        v = point[dim]
+        lo = rc['mn'][dim]
+        hi = rc['mx'][dim]
+        if v < lo:
+            d += lo - v
+        elif v > hi:
+            d += v - hi
+    return d
 
 
-def _corners(rc):
+def _count_bots_intersect_rc(bots, rc):
+    c = 0
+    for (pos, r) in bots:
+        if _dist_point_to_rc(pos, rc) <= r:
+            c += 1
+    return c
+
+
+def _dist_origin_to_rc(rc):
+    # minimal L1 distance from origin to any point in box
+    d = 0
+    for dim in range(3):
+        lo = rc['mn'][dim]
+        hi = rc['mx'][dim]
+        if hi < 0:
+            d += -hi
+        elif lo > 0:
+            d += lo
+    return d
+
+
+def _rc_size(rc):
+    return max(rc['mx'][d] - rc['mn'][d] for d in range(3)) + 1  # edge length
+
+
+def _split_rc(rc):
     mn = rc['mn']
     mx = rc['mx']
-    for x in [mn[0], mx[0]]:
-        for y in [mn[1], mx[1]]:
-            for z in [mn[2], mx[2]]:
-                yield x, y, z
+    mid = [(mn[d] + mx[d]) // 2 for d in range(3)]
 
+    ranges = []
+    for d in range(3):
+        ranges.append([(mn[d], mid[d]), (mid[d] + 1, mx[d])])
 
-def _is_non_empty_intersection(rc1, rc2):
-    for corner in _corners(rc2):
-        if _is_inside(point=corner, rc=rc1):
-            return True
-    return False
-
-
-def _intersection(rc1, rc2):
-    mn1 = rc1['mn']
-    mn2 = rc2['mn']
-    mx1 = rc1['mx']
-    mx2 = rc2['mx']
-    rc_intersect = {'mn': [], 'mx': []}
-    for dim in range(3):
-        rc_intersect['mn'].append(max(mn1[dim], mn2[dim]))
-        rc_intersect['mx'].append(min(mx1[dim], mx2[dim]))
-    return rc_intersect
-
-
-def _one_round(i, dicts):
-    bot_dict = dicts[i]
-    bot_rc = bot_dict['d']
-    for j, s in enumerate(dicts):
-        if i == j:
+    out = []
+    for x0, x1 in ranges[0]:
+        if x0 > x1:
             continue
-        s_rc = s['d']
-        if _is_non_empty_intersection(rc1=s_rc, rc2=bot_rc):
-            rc_intersect = _intersection(rc1=s_rc, rc2=bot_rc)
-            s['d'] = rc_intersect
-            s['p'] += 1
+        for y0, y1 in ranges[1]:
+            if y0 > y1:
+                continue
+            for z0, z1 in ranges[2]:
+                if z0 > z1:
+                    continue
+                out.append({'mn': [x0, y0, z0], 'mx': [x1, y1, z1]})
+    return out
+
 
 def solve(bots):
-    # Step 1
-    dicts = _initialize(bots)
+    root = _initialize(bots)
 
-    # Step 2
-    for i in range(len(dicts)):
-        _one_round(i, dicts)
+    heap = []
+    counter = 0
 
-    # Step 3
-    m = max(s['p'] for s in dicts)
+    c0 = _count_bots_intersect_rc(bots, root)
+    heapq.heappush(heap, (-c0, _dist_origin_to_rc(root), _rc_size(root), counter, root))
 
-    # Step 4
-    k = [s for s in dicts if m == s['p']]
+    while heap:
+        negc, dist0, sz, _, rc = heapq.heappop(heap)
+        if sz == 1:
+            return dist0  # single point => exact answer
 
-    # Step 5
-    min_dist = None
-    for s in k:
-        closest = sum(s['d']['mn'])
-        if min_dist is None or min_dist < closest:
-            min_dist = closest
-    return min_dist
+        for child in _split_rc(rc):
+            c = _count_bots_intersect_rc(bots, child)
+            if c == 0:
+                continue
+            counter += 1
+            heapq.heappush(heap, (-c, _dist_origin_to_rc(child), _rc_size(child), counter, child))
+
+    raise RuntimeError("No solution found")
 
 
 def main(fname):

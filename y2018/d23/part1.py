@@ -1,6 +1,3 @@
-import sys
-
-
 def _parse(fname):
     bots = {}
 

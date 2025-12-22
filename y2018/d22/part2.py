@@ -1,0 +1,90 @@
+"""
+Solution idea: Dijkstra's algorithm on the graph of possible moves,
+with a neighbors function that relies on the implementation of part 1.
+"""
+from heapq import heappop, heappush
+
+TEST_DEPTH = 510
+TEST_TARGET = 10, 10
+
+DEPTH = 8103
+TARGET = 9, 758
+
+
+def _geologic_edge(x, y, target_x, target_y):
+    if x == y == 0:
+        return 0
+
+    if x == target_x and y == target_y:
+        return 0
+
+    if y == 0:
+        return x * 16807
+
+    if x == 0:
+        return y * 48271
+
+    raise ValueError(f'Not an edge case: {x=} {y=}')
+
+
+def _erosion(x, y, target_x, target_y, depth, memo):
+    memo_key = x, y
+    if memo_key in memo:
+        return memo[memo_key]
+
+    if 0 in (x, y) or (x, y) == (target_x, target_y):
+        g = _geologic_edge(x, y, target_x, target_y)
+    else:
+        a = _erosion(x - 1, y, target_x, target_y, depth, memo)
+        b = _erosion(x, y - 1, target_x, target_y, depth, memo)
+        g = a * b
+
+    e = (g + depth) % 20183
+    memo[memo_key] = e
+    return e
+
+
+def _print_region(risk):
+    if risk == 0:
+        symbol = '.'
+    elif risk == 1:
+        symbol = '='
+    else:
+        symbol = '|'
+    print(symbol, end='')
+
+
+def _is_goal(state, target_x, target_y):
+    x = state['x']
+    y = state['y']
+    reached = (x == target_x and y == target_y)
+    return reached
+
+
+def _dijkstra(start, is_goal, neighbors):
+    pq = [(0, start)]
+    settled = set()
+
+    while pq:
+        d, u = heappop(pq)
+
+        if u not in settled:
+            settled.add(u)
+
+            if is_goal(u):
+                return d
+
+            for v, w in neighbors(u):
+                if v not in settled:
+                    heappush(pq, (d + w, v))
+
+    return None
+
+
+def solve(depth, target_x, target_y):
+    memo = {}
+
+
+if __name__ == '__main__':
+    assert 114 == solve(TEST_DEPTH, TEST_TARGET[0], TEST_TARGET[1])
+    print(solve(DEPTH, TARGET[0], TARGET[1]))

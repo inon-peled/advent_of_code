@@ -1,22 +1,29 @@
-def _parse(fname):
-    return [int(r) for r in open(fname)]
+def _one_round(r, elves):
+    r1 = r[elves[0]]
+    r2 = r[elves[1]]
+    s = str(r1 + r2)
+    for d in s:
+        r.append(int(d))
+    elves[0] = (elves[0] + r1 + 1) % len(r)
+    elves[1] = (elves[1] + r2 + 1) % len(r)
 
 
-def solve(nums):
-    i = 0
-    total = 0
-    seen = {0}
+def solve(sub):
+    r = [3, 7]
+    elves = [0, 1]
     while True:
-        total += nums[i]
-        if total in seen:
-            return total
-        seen.add(total)
-        i = (i + 1) % len(nums)
+        suffix = ''.join(map(str, r[-10:]))
+        if sub in suffix:
+            r_s = ''.join(map(str, r))
+            sb_idx = r_s.index(sub)
+            return sb_idx
+        else:
+            _one_round(r, elves)
 
 
 if __name__ == '__main__':
-    assert 0 == solve([1, -1])
-    assert 10 == solve([+3, +3, +4, -2, -4])
-    assert 5 == solve([-6, +3, +8, +5, -6])
-    assert 14 == solve([+7, +7, -2, -7, -4])
-    print(solve(_parse('./input.txt')))
+    assert 9 == solve('51589')
+    assert 5 == solve('01245')
+    assert 18 == solve('92510')
+    assert 2018 == solve('59414')
+    print(solve('380621'))

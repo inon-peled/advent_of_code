@@ -7,7 +7,7 @@ DATA = 'JBrkXxxXaEeAaIoOHhilLALlKQqpPBoOxXkKRdtTzZDhHdDrbmLlMyMmJDSsdjYEAaoOpPsS
 
 
 def _eliminate(stack):
-    while len(stack) > 1:
+    if len(stack) > 1:
         a = stack.pop()
         b = stack.pop()
         should_eliminate = (a != b and a.lower() == b.lower())

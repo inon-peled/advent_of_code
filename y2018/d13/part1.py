@@ -1,3 +1,7 @@
+"""
+Solved via simulation and corrected a bug using Claude:
+https://claude.ai/share/20b1d91a-4305-4bab-a20e-bf6e9c56a21a
+"""
 LEFT = 'L'
 RIGHT = 'R'
 STRAIGHT = 'S'
@@ -44,15 +48,6 @@ def _init_carts_and_clean_board(board):
         _hide_cart(board, i, j)
 
     return carts
-
-
-def _find_collision(sorted_carts):
-    for i in range(len(sorted_carts) - 1):
-        t1 = sorted_carts[i]
-        t2 = sorted_carts[i + 1]
-        if (t1[0] == t2[0]) and (t1[1] == t2[1]):
-            return t1[:2]
-    return None
 
 
 def _move(cart):
@@ -131,7 +126,6 @@ def _print_state(board, carts):
 def _advance_carts(board, carts):
     for cart_idx, cart in enumerate(carts):
         cell = board[cart[0]][cart[1]]
-
         if cell in ['-', '|']:
             pass
         elif cell in ['/', '\\']:
@@ -140,21 +134,24 @@ def _advance_carts(board, carts):
             _rotate_on_junction(cart)
         else:
             raise ValueError(f'Unknown cell type "{cell}" for {cart_idx=}')
-
         _move(cart)
-        pass
-    # _print_state(board, carts)
+
+        # Check for collision immediately after this cart moves
+        for other_idx, other_cart in enumerate(carts):
+            if cart_idx != other_idx:
+                if cart[0] == other_cart[0] and cart[1] == other_cart[1]:
+                    return (cart[1], cart[0])  # Return collision coordinates
+
+    return None  # No collision this tick
 
 
 def solve(board):
     carts = _init_carts_and_clean_board(board)
     while True:
         carts.sort()
-        x = _find_collision(carts)
-        if x is not None:
-            collision_coordinates = (x[1], x[0])
-            return collision_coordinates
-        _advance_carts(board, carts)
+        collision = _advance_carts(board, carts)
+        if collision is not None:
+            return collision
 
 
 def main(fname):

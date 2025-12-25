@@ -1,12 +1,22 @@
+LEFT = 'L'
+RIGHT = 'R'
+STRAIGHT = 'S'
+
+
 def _parse(fname):
     board = []
     with open(fname) as f:
         for line in f:
-            board.append([c for c in line.strip()])
+            board.append([c for c in line])
 
-    pad_row = [' '] * (len(board[0]) + 2)
-    padded_board = [pad_row] + [[' '] + r + [' '] for r in board] + [pad_row]
-    return padded_board
+    longest = len(max(board, key=len))
+    for i in range(len(board)):
+        r = board[i]
+        r_padded = r + ([' '] * (longest - len(r)))
+        board[i] = r_padded
+
+    assert all(len(r) == longest for r in board)
+    return board
 
 
 def _hide_cart(board, i, j):
@@ -27,7 +37,7 @@ def _init_carts_and_clean_board(board):
         for j in range(len(row)):
             cell = board[i][j]
             if cell in '^<>v':
-                carts.append([i, j, board[i][j], 'l'])
+                carts.append([i, j, board[i][j], LEFT])
 
     for cart in carts:
         i, j = cart[:2]
@@ -78,32 +88,32 @@ def _rotate_on_corner(corner, cart):
 def _rotate_on_junction(cart):
     NEXT_SHAPE = {
         'v': {
-            'l': '>',
-            'r': '<',
-            's': 'v'
+            LEFT: '>',
+            RIGHT: '<',
+            STRAIGHT: 'v'
         },
         '^': {
-            'l': '<',
-            'r': '>',
-            's': '^'
+            LEFT: '<',
+            RIGHT: '>',
+            STRAIGHT: '^'
         },
         '<': {
-            'l': 'v',
-            'r': '^',
-            's': '<'
+            LEFT: 'v',
+            RIGHT: '^',
+            STRAIGHT: '<'
         },
         '>': {
-            'l': '^',
-            'r': 'v',
-            's': '>'
+            LEFT: '^',
+            RIGHT: 'v',
+            STRAIGHT: '>'
         }
     }
     cart[2] = NEXT_SHAPE[cart[2]][cart[3]]
 
     NEXT_DIRECTION = {
-        'r': 'l',
-        'l': 's',
-        's': 'r'
+        RIGHT: LEFT,
+        LEFT: STRAIGHT,
+        STRAIGHT: RIGHT
     }
     cart[3] = NEXT_DIRECTION[cart[3]]
 
@@ -117,8 +127,9 @@ def _print_state(board, carts):
     for row in b:
         print(''.join(row))
 
+
 def _advance_carts(board, carts):
-    for cart in carts:
+    for cart_idx, cart in enumerate(carts):
         cell = board[cart[0]][cart[1]]
 
         if cell in ['-', '|']:
@@ -128,10 +139,12 @@ def _advance_carts(board, carts):
         elif cell == '+':
             _rotate_on_junction(cart)
         else:
-            raise ValueError(f'Unknown cell type "{cell}"')
+            raise ValueError(f'Unknown cell type "{cell}" for {cart_idx=}')
 
         _move(cart)
+        pass
     # _print_state(board, carts)
+
 
 def solve(board):
     carts = _init_carts_and_clean_board(board)
@@ -139,7 +152,7 @@ def solve(board):
         carts.sort()
         x = _find_collision(carts)
         if x is not None:
-            collision_coordinates = (x[1] - 1, x[0] - 1)
+            collision_coordinates = (x[1], x[0])
             return collision_coordinates
         _advance_carts(board, carts)
 

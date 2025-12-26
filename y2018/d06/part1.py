@@ -4,7 +4,10 @@ This is a Voronoi diagram in L1, not Euclidean distance. So:
 1. Form a bounding box.
 2. Do multi-source BFS from the data points, namely:
 2.1. Initialize the FIFO with all the data points.
-2.2. Continue BFS as usual, except that if a point was already visited, change its status to '.'.
+2.2. Continue BFS:
+2.2.1. Keep track of source root and min. distance from it.
+2.2.2. When reaching an already closed point from a different source with the same min. distance,
+       change the root of p to '.'.
 3. A data point has an infinitely large Voronoi cell if-and-only-if it lies on an edge of the bounding box.
 '''
 

@@ -7,7 +7,7 @@ This is a Voronoi diagram in L1, not Euclidean distance. So:
 2.2. Continue BFS:
 2.2.1. Keep track of source root and min. distance from it.
 2.2.2. When reaching an already closed point from a different source with the same min. distance,
-       change the root of p to '.'.
+       change the root of p to None.
 3. Remove all data points that lie on the edges of the bounding box -- these are the data points with infinitely
    large Voronoi cells.
 4. Output the largest number locations that were reached from the same root.
@@ -21,7 +21,6 @@ DATA = [(162, 168), (86, 253), (288, 359), (290, 219), (145, 343), (41, 301), (9
         (330, 88), (349, 289), (165, 102), (232, 131), (338, 191), (178, 335), (318, 107), (335, 339), (153, 156),
         (88, 119), (163, 268), (159, 183), (162, 134)]
 TEST = [(1, 1), (1, 6), (8, 3), (3, 4), (5, 5), (8, 9)]
-MINI_TEST = [(1, 1), (1, 3)]
 
 
 def _bounding_box(data):

@@ -1,14 +1,10 @@
 """
 Solution idea:
-
-Consider the bounding box of the points.
 When the message appears, the points are relatively grouped together, namely, their bounding box is
 small in comparison to other steps.
-
-So simulate each step, while keeping track of the changing bounding box, and print the points whenever
-all the following hold:
-* The bounding box area is smaller than all previous areas.
-* Each edge of the bounding is at most num_points + 10 long.
+So simulate each step, and print the points at the end of a step whenever all the following hold:
+* The current bounding box has an area smaller than the area in all previous steps.
+* Each edge of the current bounding box is at most (num_points + 10) long.
 """
 
 

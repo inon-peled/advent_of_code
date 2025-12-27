@@ -4,7 +4,7 @@ When the message appears, the points are relatively grouped together, namely, th
 small in comparison to other steps.
 So simulate each step, and print the points at the end of a step whenever all the following hold:
 * The current bounding box has an area smaller than the area in all previous steps.
-* Each edge of the current bounding box is at most (num_points + 10) long.
+* Each edge of the current bounding box is at most (num_points * 2 / 3) long.
 """
 
 
@@ -67,7 +67,7 @@ def solve(points, max_iterations):
     min_bbox_area = None
     for i in range(max_iterations):
         bbox_area, max_edge_length = _bounding_box_area(points)
-        if (min_bbox_area is None or bbox_area < min_bbox_area) and (max_edge_length <= n + 10):
+        if (min_bbox_area is None or bbox_area < min_bbox_area) and (max_edge_length <= 2 * n / 3):
             _print_points(i, points)
             min_bbox_area = bbox_area
         _advance(points)

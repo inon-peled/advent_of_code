@@ -71,8 +71,6 @@ def solve(points, max_iterations):
             _print_points(i, points)
             min_bbox_area = bbox_area
         _advance(points)
-        if i % 100_000 == 0:
-            print(f'\nDid {i} iterations so far\n')
 
 
 def main(fname, max_iterations):
@@ -82,4 +80,4 @@ def main(fname, max_iterations):
 
 if __name__ == '__main__':
     main('./test.txt', 10 ** 3)
-    main('./input.txt', 10 ** 8)
+    main('./input.txt', 10 ** 5)

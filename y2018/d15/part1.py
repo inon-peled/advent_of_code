@@ -1,5 +1,7 @@
+"""
+Fixed the solution using Claude: https://claude.ai/share/827f86f9-00d1-4672-91c4-e1bc0eac836e
+"""
 from collections import deque
-from heapq import heappush, heappop
 
 
 def _parse(fname):
@@ -22,64 +24,117 @@ def _parse(fname):
 
 def _neighbors(x, y):
     return [
+        (x, y - 1),
         (x - 1, y),
         (x + 1, y),
-        (x, y - 1),
         (x, y + 1)
     ]
 
 
-def _all_reachable_enemies(board, units, start, enemy_type):
-    reachable_enemies = []
-    distances = {}
-    q = deque([(0, (None, None), start)])
+def _bfs_distances(board, units, start):
+    """BFS to find distances from start to all reachable squares"""
+    distances = {start: 0}
+    q = deque([start])
 
     while q:
-        d, f, (x, y) = q.popleft()
-        if (x, y) not in distances:
-            distances[(x, y)] = (d, f)
-            for neigh_x, neigh_y in _neighbors(x, y):
-                board_neigh = board[neigh_x, neigh_y]
-                if board_neigh == '#':
-                    continue
-                elif (neigh_x, neigh_y) in units:
-                    neigh_type, neigh_hp = units[(neigh_x, neigh_y)]
-                    if neigh_type != enemy_type:
-                        continue
-                    else:
-                        enemy = (neigh_hp, neigh_x, neigh_y, x, y, 1 + d)
-                        heappush(reachable_enemies, enemy)
-                else:
-                    q_item = (1 + d, (x, y), (neigh_x, neigh_y))
-                    q.append(q_item)
+        x, y = q.popleft()
+        for nx, ny in _neighbors(x, y):
+            if (nx, ny) in distances:
+                continue
+            if board.get((nx, ny)) != '.':
+                continue
+            if (nx, ny) in units:
+                continue
+            distances[(nx, ny)] = distances[(x, y)] + 1
+            q.append((nx, ny))
 
-    return reachable_enemies, distances
+    return distances
 
 
-def _find_nearest_reachable_enemy(board, units, loc):
-    enemy_type = 'G' if units[loc][0] == 'E' else 'E'
-    reachable_enemies, distances = _all_reachable_enemies(board, units, loc, enemy_type)
+def _find_move_target(board, units, loc):
+    """Find the best square to move toward (or None if no valid targets)"""
+    my_type = units[loc][0]
+    enemy_type = 'E' if my_type == 'G' else 'G'
 
-    if not reachable_enemies:
-        return None, None
+    # Find all enemies
+    enemies = [pos for pos, (utype, hp) in units.items() if utype == enemy_type]
+    if not enemies:
+        return None
 
-    nearest_hp, nearest_x, nearest_y, nearest_f_x, nearest_f_y, nearest_dist = heappop(reachable_enemies)
-    father = nearest_f_x, nearest_f_y
-    node = nearest_x, nearest_y
-    while father != loc:
-        node = father
-        father = distances[father][1]
+    # Find all squares in range of enemies (empty squares adjacent to enemies)
+    in_range = []
+    for ex, ey in enemies:
+        for nx, ny in _neighbors(ex, ey):
+            if board.get((nx, ny)) == '.' and (nx, ny) not in units:
+                in_range.append((nx, ny))
 
-    return nearest_dist, node
+    if not in_range:
+        return None
+
+    # BFS from current location
+    distances = _bfs_distances(board, units, loc)
+
+    # Find reachable targets with their distances
+    reachable = []
+    for target in in_range:
+        if target in distances:
+            reachable.append((distances[target], target[1], target[0], target))
+
+    if not reachable:
+        return None
+
+    # Choose nearest target (by distance, then reading order)
+    reachable.sort()
+    chosen_target = reachable[0][3]
+
+    # Now find which first step to take toward chosen_target
+    # BFS from chosen_target back to find all paths
+    if chosen_target == loc:
+        return loc  # Already there
+
+    # BFS from target backwards to find best first step
+    reverse_dist = _bfs_distances(board, units, chosen_target)
+
+    # Check all neighbors of start position
+    possible_first_steps = []
+    for nx, ny in _neighbors(loc[0], loc[1]):
+        if (nx, ny) in reverse_dist:
+            possible_first_steps.append((reverse_dist[(nx, ny)], ny, nx, (nx, ny)))
+
+    if not possible_first_steps:
+        return None
+
+    possible_first_steps.sort()
+    return possible_first_steps[0][3]
 
 
-def _attack(next_loc, units):
-    curr_hp = units[next_loc][1]
+def _find_attack_target(units, loc):
+    """Find adjacent enemy to attack (lowest HP, then reading order)"""
+    my_type = units[loc][0]
+    enemy_type = 'E' if my_type == 'G' else 'G'
+
+    x, y = loc
+    targets = []
+    for nx, ny in _neighbors(x, y):
+        if (nx, ny) in units:
+            utype, hp = units[(nx, ny)]
+            if utype == enemy_type:
+                targets.append((hp, ny, nx, (nx, ny)))
+
+    if not targets:
+        return None
+
+    targets.sort()
+    return targets[0][3]
+
+
+def _attack(target_loc, units):
+    curr_hp = units[target_loc][1]
     new_hp = curr_hp - 3
     if new_hp <= 0:
-        units.pop(next_loc)
+        units.pop(target_loc)
     else:
-        units[next_loc] = (units[next_loc][0], new_hp)
+        units[target_loc] = (units[target_loc][0], new_hp)
 
 
 def _move(loc, next_loc, units):
@@ -88,14 +143,28 @@ def _move(loc, next_loc, units):
 
 
 def _one_turn(board, units):
-    unit_locs = sorted(units, key=lambda p: p[1])
+    unit_locs = sorted(units.keys(), key=lambda p: (p[1], p[0]))
+
     for loc in unit_locs:
-        nearest_dist, next_loc = _find_nearest_reachable_enemy(board, units, loc)
-        if nearest_dist is not None:
-            if nearest_dist == 1:
-                _attack(next_loc, units)
-            else:
-                _move(loc, next_loc, units)
+        if loc not in units:  # Unit was killed earlier this turn
+            continue
+
+        # Try to attack
+        target = _find_attack_target(units, loc)
+        if target:
+            _attack(target, units)
+            continue
+
+        # Try to move
+        move_target = _find_move_target(board, units, loc)
+        if move_target and move_target != loc:
+            _move(loc, move_target, units)
+            loc = move_target
+
+        # Try to attack after moving
+        target = _find_attack_target(units, loc)
+        if target:
+            _attack(target, units)
 
 
 def _is_last_turn(units):
@@ -105,8 +174,8 @@ def _is_last_turn(units):
 
 def _print_board(turn, board, units):
     print(f'\n==== After {turn} turns ====')
-    h = max(b[0] for b in board)
-    w = max(b[1] for b in board)
+    h = max(b[1] for b in board)
+    w = max(b[0] for b in board)
     for i in range(h + 1):
         print()
         for j in range(w + 1):
@@ -133,9 +202,11 @@ def _simulate(board, units):
 def main(fname):
     board, units = _parse(fname)
     total_turns = _simulate(board, units)
-    return total_turns
+    remaining_hp = sum(u[1] for u in units.values())
+    answer = (total_turns - 1) * remaining_hp
+    return answer
 
 
 if __name__ == '__main__':
-    assert 47 == main('test1.txt')
-    # print(main('input.txt'))
+    assert 18740 == main('test1.txt')
+    print('\nPart 1 answer:', main('input.txt'))

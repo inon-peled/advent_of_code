@@ -52,3 +52,4 @@ def main(fname, turns):
 if __name__ == '__main__':
     assert 1147 == main('test.txt', 10)
     print(main('input.txt', 10))
+    print(main('input.txt', 100))

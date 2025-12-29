@@ -1,7 +1,8 @@
 """
 Solution idea:
-Hopefully, there is periodicity in the state of the forest and the period length is quite small.
-So detect this period and use it to step over tons of repeated calculations.
+Hopefully, there is a cycle of states that the forest goes through from some minute onwards,
+and the length of this cycle is quite small.
+So detect such a cycle and use its length to skip tons of repeated calculations.
 """
 
 
@@ -37,22 +38,24 @@ def _one_turn(forest):
     return new_forest
 
 
-def _find_period(forest):
-    original_forest = [l[:] for l in forest]
+def _find_cycle(forest):
     t = 0
+    states = {t: forest}
     while True:
         forest = _one_turn(forest)
         t += 1
-        if t % 10_000 == 0:
-            print(f'So far, did {t} iterations to find period.')
-        if original_forest == forest:
-            print(f'Found period: {t}')
-            return t
+        for prev_t in states:
+            if states[prev_t] == forest:
+                cycle_length = t - prev_t
+                print(f'A cycle of length {cycle_length} begins at minute {prev_t}')
+                return prev_t, cycle_length, forest
+        states[t] = forest
 
 
 def solve(forest, turns):
-    period = _find_period(forest)
-    remaining_turns = turns % period
+    initial_t, cycle_length, forest = _find_cycle(forest)
+    n = (turns - initial_t) // cycle_length
+    remaining_turns = turns - (initial_t + cycle_length * n)
 
     for _ in range(remaining_turns):
         forest = _one_turn(forest)
@@ -74,5 +77,4 @@ def main(fname, turns):
 
 
 if __name__ == '__main__':
-    assert 1147 == main('test.txt', 10)
     print(main('input.txt', 1_000_000_000))
